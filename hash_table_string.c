@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <limits.h>
+#include <string.h>
 #include <stdlib.h>
 
 #define ERROR -1
@@ -9,7 +9,7 @@ enum Type {
 };
 
 typedef struct Entry {
-    int key;
+    char *key;
     int val;
     enum Type type;
 } Entry;
@@ -20,7 +20,7 @@ typedef struct HashMap {
     Entry *arr;
 } HashMap;
 
-void insert(HashMap *hm, int key, int val);
+void insert(HashMap *hm, char *key, int val);
 
 HashMap *initHashMap(int capacity) {
     HashMap *hm = (HashMap *) malloc(sizeof(HashMap));
@@ -33,27 +33,30 @@ HashMap *initHashMap(int capacity) {
     return hm;
 }
 
-int hash(int key, int capacity, int probes) {
-    if (key == INT_MIN) {
-        return 0;
+unsigned hash(char *key, int capacity, int probes) {
+    unsigned hash_val = 0;
+    while (*key != '\0') {
+        hash_val += (hash_val << 5) + *key++;
     }
-    return (abs(key) % capacity + probes * probes) % capacity;
+    return (hash_val % capacity + probes * probes) % capacity;
 }
 
-int find(HashMap *hm, int key) {
+int find(HashMap *hm, char *key) {
     int probes = 0;
-    int hashKey = hash(key, hm->capacity, probes);
-    while (hm->arr[hashKey].type == DELETED || (hm->arr[hashKey].type == ACTIVE && hm->arr[hashKey].key != key)) {
+    unsigned hashKey = hash(key, hm->capacity, probes);
+    while (hm->arr[hashKey].type == DELETED ||
+           (hm->arr[hashKey].type == ACTIVE &&
+            strcmp(hm->arr[hashKey].key, key) != 0)) {
         probes++;
         hashKey = hash(key, hm->capacity, probes);
     }
     if (hm->arr[hashKey].type == EMPTY || hm->arr[hashKey].type == DELETED) {
         return ERROR;
     }
-    return hashKey;
+    return (int) hashKey;
 }
 
-int hasKey(HashMap *hm, int key) {
+int hasKey(HashMap *hm, char *key) {
     return find(hm, key) != ERROR;
 }
 
@@ -80,9 +83,9 @@ void ExpandHashMap(HashMap *hm) {
     free(oldArr);
 }
 
-void insert(HashMap *hm, int key, int val) {
+void insert(HashMap *hm, char *key, int val) {
     int probes = 0;
-    int hashKey = hash(key, hm->capacity, probes);
+    unsigned hashKey = hash(key, hm->capacity, probes);
     while (hm->arr[hashKey].type == ACTIVE) {
         probes++;
         hashKey = hash(key, hm->capacity, probes);
@@ -97,7 +100,7 @@ void insert(HashMap *hm, int key, int val) {
         ExpandHashMap(hm);
 }
 
-void insertWithReplacement(HashMap *hm, int key, int val) {
+void insertWithReplacement(HashMap *hm, char *key, int val) {
     int found = find(hm, key);
     if (found == ERROR) {
         insert(hm, key, val);
@@ -108,7 +111,7 @@ void insertWithReplacement(HashMap *hm, int key, int val) {
     }
 }
 
-void delete(HashMap *hm, int key) {
+void delete(HashMap *hm, char *key) {
     int hash = find(hm, key);
     if (hash != ERROR) {
         hm->arr[hash].type = DELETED;
@@ -116,26 +119,23 @@ void delete(HashMap *hm, int key) {
 }
 
 int main(void) {
-    HashMap *hs = initHashMap(3); // 3 is to test expand heap
-    insert(hs, 10, 1);
-    insert(hs, 123, 1);
-    insert(hs, 345, 1);
-    insert(hs, 64, 1);
-    insert(hs, 8127, 1);
-    insert(hs, 234, 1);
-    insert(hs, 678, 1);
-    if (hasKey(hs, 64))
+    HashMap *hm = initHashMap(3); // 3 is to test expand heap
+    insert(hm, "Hello", 1);
+    insert(hm, "World", 1);
+    insert(hm, "你好", 1);
+    insert(hm, "世界", 1);
+    if (hasKey(hm, "World"))
         puts("YES 1");
-    if (!hasKey(hs, 100))
+    if (!hasKey(hm, "???"))
         puts("YES 2");
-    if (hasKey(hs, 678))
+    if (hasKey(hm, "你好"))
         puts("YES 3");
-    delete(hs, 123);
-    delete(hs, 8127);
-    delete(hs, 678);
-    if (!hasKey(hs, 678))
+    delete(hm, "Hello");
+    delete(hm, "世界");
+    if (!hasKey(hm, "Hello"))
         puts("YES 4");
-    if (hasKey(hs, 10))
+    if (hasKey(hm, "World"))
         puts("YES 5");
+    freeHashMap(hm);
     return 0;
 }

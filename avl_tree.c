@@ -9,19 +9,19 @@ typedef struct TreeNode {
 } TreeNode;
 
 typedef struct avl {
-    struct TreeNode* root;
+    struct TreeNode *root;
 } avl;
 
-int max(int a, int b){
+int max(int a, int b) {
     return (a > b) ? a : b;
 }
 
-int height(TreeNode *n){
+int height(TreeNode *n) {
     return n == NULL ? 0 : n->height;
 }
 
-TreeNode* initTreeNode(int val){
-    TreeNode *n = (TreeNode*)malloc(sizeof(TreeNode));
+TreeNode *initTreeNode(int val) {
+    TreeNode *n = (TreeNode *) malloc(sizeof(TreeNode));
     n->val = val;
     n->left = NULL;
     n->right = NULL;
@@ -29,18 +29,18 @@ TreeNode* initTreeNode(int val){
     return n;
 }
 
-avl* initAVL(int val){
-    avl *n = (avl*)malloc(sizeof(avl));
+avl *initAVL(int val) {
+    avl *n = (avl *) malloc(sizeof(avl));
     n->root = initTreeNode(val);
     return n;
 }
 
-void updateHeight(TreeNode* n){
+void updateHeight(TreeNode *n) {
     n->height = max(height(n->left), height(n->right)) + 1;
 }
 
-TreeNode* rotateLeft(TreeNode *n){
-    TreeNode* k = n->right;
+TreeNode *rotateLeft(TreeNode *n) {
+    TreeNode *k = n->right;
     n->right = k->left;
     k->left = n;
 
@@ -49,8 +49,8 @@ TreeNode* rotateLeft(TreeNode *n){
     return k;
 }
 
-TreeNode* rotateRight(TreeNode *n){
-    TreeNode* k = n->left;
+TreeNode *rotateRight(TreeNode *n) {
+    TreeNode *k = n->left;
     n->left = k->right;
     k->right = n;
 
@@ -59,27 +59,27 @@ TreeNode* rotateRight(TreeNode *n){
     return k;
 }
 
-TreeNode* doubleRotateLeft(TreeNode *n){
+TreeNode *doubleRotateLeft(TreeNode *n) {
     n->left = rotateLeft(n->left);
     return rotateRight(n);
 }
 
-TreeNode* doubleRotateRight(TreeNode *n){
+TreeNode *doubleRotateRight(TreeNode *n) {
     n->right = rotateRight(n->right);
     return rotateLeft(n);
 }
 
-TreeNode* balance(TreeNode *n, int val, avl *a){
-    if(n == NULL)
+TreeNode *balance(TreeNode *n, int val, avl *a) {
+    if (n == NULL)
         return n;
     int balancingFactor = height(n->left) - height(n->right);
-    if(balancingFactor == 2){
-        if(val < n->left->val)
+    if (balancingFactor == 2) {
+        if (val < n->left->val)
             n = rotateRight(n); // LL
         else
             n = doubleRotateLeft(n); // LR
-    } else if(balancingFactor == -2){
-        if(val > n->right->val)
+    } else if (balancingFactor == -2) {
+        if (val > n->right->val)
             n = rotateLeft(n); // RR
         else
             n = doubleRotateRight(n); // RL
@@ -88,22 +88,20 @@ TreeNode* balance(TreeNode *n, int val, avl *a){
     return n;
 }
 
-TreeNode* insert(TreeNode *n, int val, avl *a){
-    if(n == NULL){
+TreeNode *insert(TreeNode *n, int val, avl *a) {
+    if (n == NULL) {
         n = initTreeNode(val);
-    }
-    else if(val < n->val){
+    } else if (val < n->val) {
         n->left = insert(n->left, val, a);
-    }
-    else if(val > n->val){
+    } else if (val > n->val) {
         n->right = insert(n->right, val, a);
     }
     updateHeight(n);
     return balance(n, val, a);
 }
 
-void preorder(TreeNode *n){
-    if(n != NULL){
+void preorder(TreeNode *n) {
+    if (n != NULL) {
         printf("%d ", n->val);
         preorder(n->left);
         preorder(n->right);
@@ -129,7 +127,7 @@ int main(void) {
     */
 
     printf("Preorder traversal of the constructed AVL"
-            " tree is \n");
+           " tree is \n");
     preorder(n->root);
     putchar('\n');
 
